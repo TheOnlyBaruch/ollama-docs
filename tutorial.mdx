@@ -1,0 +1,147 @@
+---
+title: "Tutorial: Build a Text Summarizer"
+description: "Learn how to use Ollama's Python library to summarize text with a local LLM"
+---
+
+In this tutorial you will build a Python script that takes a block of text and returns a concise summary using a local Ollama model. By the end you will understand how to send prompts programmatically, handle responses, and structure your code for reuse.
+
+<Info>
+  This tutorial assumes you have completed the [Getting Started](/getting-started) guide and have Ollama running with `llama3.2` pulled.
+</Info>
+
+## What you will build
+
+A Python script called `summarizer.py` that:
+
+- Accepts any block of text as input
+- Sends it to a local Ollama model with a summarization prompt
+- Prints a clean, concise summary to the terminal
+
+## Step 1: Install the Ollama Python library
+
+Open your terminal and run:
+
+```bash
+pip install ollama
+```
+
+Verify the installation:
+
+```bash
+pip show ollama
+```
+
+You should see the package details including the version number.
+
+## Step 2: Create the script
+
+Create a new file called `summarizer.py` and add the following:
+
+```python
+import ollama
+
+def summarize(text: str) -> str:
+    prompt = f"Summarize the following text in three sentences or fewer:\n\n{text}"
+
+    response = ollama.chat(
+        model="llama3.2",
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    return response["message"]["content"]
+
+
+if __name__ == "__main__":
+    sample_text = """
+    The James Webb Space Telescope (JWST) is a space telescope designed to conduct
+    infrared astronomy. Its high-resolution and high-sensitivity instruments allow it
+    to view objects too old, distant, or faint for the Hubble Space Telescope. This
+    enables investigations across many fields of astronomy and cosmology, such as
+    observation of the first stars and the formation of the first galaxies, and
+    detailed atmospheric characterization of potentially habitable exoplanets.
+    """
+
+    summary = summarize(sample_text)
+    print("Summary:")
+    print(summary)
+```
+
+## Step 3: Run the script
+
+Make sure Ollama is running in the background, then run:
+
+```bash
+python summarizer.py
+```
+
+You should see output similar to:
+
+```
+Summary:
+The James Webb Space Telescope is an infrared space telescope that surpasses
+the Hubble in sensitivity and resolution. It is designed to study the earliest
+stars and galaxies, as well as the atmospheres of potentially habitable exoplanets.
+```
+
+The exact wording will vary — LLMs are non-deterministic, so each run may produce a slightly different summary.
+
+## Step 4: Accept input from the user
+
+Right now the text is hardcoded. Update the `if __name__ == "__main__"` block to accept input from the terminal:
+
+```python
+if __name__ == "__main__":
+    print("Paste your text below. Press Enter twice when done:\n")
+    lines = []
+    while True:
+        line = input()
+        if line == "":
+            break
+        lines.append(line)
+
+    text = "\n".join(lines)
+    summary = summarize(text)
+    print("\nSummary:")
+    print(summary)
+```
+
+Run the script again:
+
+```bash
+python summarizer.py
+```
+
+Paste any block of text, press Enter twice, and the script returns a summary.
+
+## Step 5: Control the output length
+
+The summarization prompt controls how the model responds. You can adjust it to change the output style. Try replacing the prompt in the `summarize` function with this:
+
+```python
+prompt = f"Summarize the following text in one sentence:\n\n{text}"
+```
+
+Or this for a bullet-point summary:
+
+```python
+prompt = f"Summarize the following text as three bullet points:\n\n{text}"
+```
+
+Run the script after each change to see how the output shifts. This is the core idea behind prompt engineering — the instructions you give the model directly shape what it returns.
+
+<Tip>
+  Keep your prompt instructions specific. Vague prompts like "summarize this" produce inconsistent results. Telling the model exactly what format and length you want gives you more predictable output.
+</Tip>
+
+## What you learned
+
+- How to install and import the Ollama Python library
+- How to send a chat message to a local model using `ollama.chat()`
+- How to extract the response text from the returned object
+- How prompt wording affects model output
+
+## Next steps
+
+Head to the [How-To Guide](/how-to) to build a multi-turn chat application that maintains conversation history across multiple messages.

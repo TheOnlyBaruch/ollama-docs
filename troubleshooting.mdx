@@ -1,0 +1,156 @@
+---
+title: "Troubleshooting"
+description: "Common errors you may encounter when using Ollama and how to resolve them"
+---
+
+This page covers the most common issues developers run into when installing, running, or calling Ollama. Errors are organized by where they appear — installation, the CLI, and the API.
+
+---
+
+## Installation
+
+<AccordionGroup>
+  <Accordion title="'ollama' is not recognized as a command">
+    **Cause:** Ollama was not added to your system PATH during installation.
+
+    **Fix on Windows:** Restart your terminal after installation. If the problem persists, search for "Environment Variables" in Windows settings, find the `Path` variable under System Variables, and confirm that the Ollama installation directory is listed.
+
+    **Fix on Linux:** Re-run the install script:
+
+    ```bash
+    curl -fsSL https://ollama.com/install.sh | sh
+    ```
+
+    Then open a new terminal session and try again.
+  </Accordion>
+
+  <Accordion title="Installation fails on Linux with a permission error">
+    **Cause:** The install script requires sudo privileges.
+
+    **Fix:** Run the script with elevated permissions:
+
+    ```bash
+    sudo curl -fsSL https://ollama.com/install.sh | sh
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Running models
+
+<AccordionGroup>
+  <Accordion title="Error: model not found">
+    **Cause:** You are trying to run a model that has not been downloaded yet.
+
+    **Fix:** Pull the model first:
+
+    ```bash
+    ollama pull llama3.2
+    ```
+
+    Then run it:
+
+    ```bash
+    ollama run llama3.2
+    ```
+
+    To see all models you have already pulled, run `ollama list`.
+  </Accordion>
+
+  <Accordion title="The model runs very slowly">
+    **Cause:** Ollama is running on CPU only. LLMs are significantly faster with a GPU.
+
+    **Fix:** If you have an NVIDIA GPU, make sure the CUDA drivers are installed. Ollama detects the GPU automatically once drivers are in place. Run the model again after installing drivers and restarting the Ollama service.
+
+    If you are on CPU only and need faster responses, try a smaller model:
+
+    ```bash
+    ollama pull llama3.2:1b
+    ```
+  </Accordion>
+
+  <Accordion title="Error: context length exceeded">
+    **Cause:** The input you sent to the model is longer than the model's context window.
+
+    **Fix:** Reduce the size of your input. For summarization tasks, split the text into smaller chunks and summarize each chunk separately before combining the results.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## API errors
+
+<AccordionGroup>
+  <Accordion title="Connection refused on http://localhost:11434">
+    **Cause:** The Ollama server is not running.
+
+    **Fix on macOS and Windows:** Open the Ollama application from your Applications folder or system tray. The server starts automatically when the app is running.
+
+    **Fix on Linux:** Start the server manually:
+
+    ```bash
+    ollama serve
+    ```
+
+    Leave this terminal open while making API calls.
+
+    Verify the server is running by calling:
+
+    ```bash
+    curl http://localhost:11434
+    ```
+
+    You should see `Ollama is running` in the response.
+  </Accordion>
+
+  <Accordion title="HTTP 404 — model not found via API">
+    **Cause:** The model name in your API request does not match any model on your machine.
+
+    **Fix:** Check the exact name of your pulled models:
+
+    ```bash
+    ollama list
+    ```
+
+    Use the name exactly as it appears in the output, including the tag if present. For example, if `ollama list` shows `llama3.2:latest`, use `llama3.2:latest` in your request body, not just `llama3.2`.
+  </Accordion>
+
+  <Accordion title="Response is streaming when you expected a complete response">
+    **Cause:** The `stream` parameter defaults to `true` in both `/api/generate` and `/api/chat`.
+
+    **Fix:** Set `stream` to `false` in your request body:
+
+    ```bash
+    curl http://localhost:11434/api/generate \
+      -d '{
+        "model": "llama3.2",
+        "prompt": "Your prompt here",
+        "stream": false
+      }'
+    ```
+  </Accordion>
+
+  <Accordion title="Python: AttributeError when accessing the response">
+    **Cause:** The response object from `ollama.chat()` is not a plain dictionary in all versions of the library. Accessing it with `response["message"]["content"]` may fail.
+
+    **Fix:** Use attribute access instead:
+
+    ```python
+    response = ollama.chat(
+        model="llama3.2",
+        messages=[{"role": "user", "content": "Hello"}]
+    )
+
+    print(response.message.content)
+    ```
+
+    If you are unsure which syntax your version supports, print `type(response)` to inspect the return type.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Still stuck?
+
+Check the [Ollama GitHub issues page](https://github.com/ollama/ollama/issues) for reports from other users. Search for your error message before opening a new issue — it is likely someone has already found a fix.

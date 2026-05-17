@@ -1,0 +1,145 @@
+---
+title: "How-To: Build a Chat Application"
+description: "Build a multi-turn chat application that maintains conversation history using the Ollama Python library"
+---
+
+This guide shows you how to build a command-line chat application that remembers what was said earlier in the conversation. It assumes you are already familiar with the Ollama Python library from the [Tutorial](/tutorial).
+
+## What you will build
+
+A Python script called `chat.py` that:
+
+- Opens an interactive chat session with a local Ollama model
+- Maintains the full conversation history across every message
+- Allows the user to exit cleanly by typing `quit`
+
+## Step 1: Set up the script
+
+Create a new file called `chat.py` and add this:
+
+```python
+import ollama
+
+def chat():
+    conversation_history = []
+
+    print("Chat session started. Type 'quit' to exit.\n")
+
+    while True:
+        user_input = input("You: ").strip()
+
+        if user_input.lower() == "quit":
+            print("Ending session.")
+            break
+
+        if not user_input:
+            continue
+
+        conversation_history.append({
+            "role": "user",
+            "content": user_input
+        })
+
+        response = ollama.chat(
+            model="llama3.2",
+            messages=conversation_history
+        )
+
+        assistant_message = response["message"]["content"]
+        conversation_history.append({
+            "role": "assistant",
+            "content": assistant_message
+        })
+
+        print(f"\nAssistant: {assistant_message}\n")
+
+
+if __name__ == "__main__":
+    chat()
+```
+
+## Step 2: Run the application
+
+Make sure Ollama is running, then:
+
+```bash
+python chat.py
+```
+
+You should see:
+
+```
+Chat session started. Type 'quit' to exit.
+
+You:
+```
+
+Type a message and press Enter. The model responds, and the conversation continues. Type `quit` to end the session.
+
+## Step 3: Understand how history works
+
+The key to multi-turn conversation is the `conversation_history` list. Every message — both from the user and the model — gets appended to it:
+
+```python
+conversation_history.append({"role": "user", "content": user_input})
+conversation_history.append({"role": "assistant", "content": assistant_message})
+```
+
+Each time you call `ollama.chat()`, you pass the entire history. This gives the model the full context of the conversation so it can refer back to earlier messages.
+
+<Info>
+  Without conversation history, every message is treated as a fresh prompt. The model has no memory of what was said before.
+</Info>
+
+## Step 4: Add a system prompt
+
+A system prompt sets the behavior of the model for the entire session. Add one at the start of the `chat()` function, before the loop:
+
+```python
+conversation_history = [
+    {
+        "role": "system",
+        "content": "You are a helpful assistant that gives concise answers. Keep responses under three sentences unless the user asks for more detail."
+    }
+]
+```
+
+Run the script again. The model will now follow those instructions throughout the conversation.
+
+## Step 5: Display a conversation summary on exit
+
+Add a summary when the user types `quit`. Replace the `break` line with this:
+
+```python
+if user_input.lower() == "quit":
+    print(f"\nSession ended. You exchanged {len(conversation_history)} messages.")
+    break
+```
+
+<Tip>
+  The message count includes the system prompt if you added one in Step 4. Subtract one from the count if you want to show only user and assistant messages.
+</Tip>
+
+## Common adjustments
+
+**Switch the model** — replace `llama3.2` with any model you have pulled:
+
+```python
+response = ollama.chat(
+    model="mistral",
+    messages=conversation_history
+)
+```
+
+**Limit history length** — for long sessions, pass only the last N messages to avoid hitting context limits:
+
+```python
+response = ollama.chat(
+    model="llama3.2",
+    messages=conversation_history[-10:]
+)
+```
+
+## Next steps
+
+For a full breakdown of the API endpoints powering these requests, see the [API Reference](/api-reference).

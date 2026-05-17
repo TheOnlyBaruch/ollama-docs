@@ -1,0 +1,82 @@
+---
+title: "Getting Started"
+description: "Install Ollama and run your first model in under five minutes"
+---
+
+This guide walks you through installing Ollama, pulling a model, and running your first prompt. By the end you will have a working local LLM on your machine.
+
+## Install Ollama
+
+<Tabs>
+  <Tab title="macOS">
+    Download the installer from [ollama.com/download](https://ollama.com/download) and open the `.dmg` file. Drag Ollama to your Applications folder and launch it.
+  </Tab>
+  <Tab title="Linux">
+    ```bash
+    curl -fsSL https://ollama.com/install.sh | sh
+    ```
+  </Tab>
+  <Tab title="Windows">
+    Download the installer from [ollama.com/download](https://ollama.com/download) and run the `.exe` file. Ollama runs as a background service after installation.
+  </Tab>
+</Tabs>
+
+Verify the installation:
+
+```bash
+ollama --version
+```
+
+You should see output like:
+
+```
+ollama version 0.4.0
+```
+
+## Pull a model
+
+Ollama uses a model library at [ollama.com/library](https://ollama.com/library). Pull `llama3.2` to get started — it is small enough to run on most machines:
+
+```bash
+ollama pull llama3.2
+```
+
+Ollama downloads the model and stores it locally. This only happens once.
+
+<Info>
+  The `llama3.2` model is about 2GB. Make sure you have enough disk space before pulling.
+</Info>
+
+## Run your first prompt
+
+```bash
+ollama run llama3.2 "Explain what a large language model is in two sentences."
+```
+
+You should see a response stream directly in your terminal within a few seconds.
+
+## Start an interactive session
+
+Run the model without a prompt to open an interactive chat session:
+
+```bash
+ollama run llama3.2
+```
+
+Type your message and press Enter. Type `/bye` to exit.
+
+## Check which models you have
+
+```bash
+ollama list
+```
+
+This shows all models currently downloaded on your machine.
+
+<Tip>
+  You can run multiple models on the same machine. Use `ollama list` to keep track of what you have pulled.
+</Tip>
+
+## Next steps
+
+Now that Ollama is running, head to the [Tutorial](/tutorial) to build a Python script that summarizes text using your local model.

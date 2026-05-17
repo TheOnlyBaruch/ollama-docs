@@ -1,0 +1,206 @@
+---
+title: "API Reference"
+description: "Reference documentation for the Ollama REST API"
+---
+
+Ollama exposes a local REST API at `http://localhost:11434`. You can call it directly with any HTTP client — curl, Python's `requests` library, or any tool that speaks HTTP.
+
+<Info>
+  The Ollama server must be running before you make any API calls. On macOS and Windows it starts automatically. On Linux, start it with `ollama serve`.
+</Info>
+
+---
+
+## POST /api/generate
+
+Generates a response to a single prompt. Use this for one-off completions where you do not need conversation history.
+
+### Request
+
+```bash
+curl http://localhost:11434/api/generate \
+  -d '{
+    "model": "llama3.2",
+    "prompt": "What is the capital of France?",
+    "stream": false
+  }'
+```
+
+### Request body
+
+| Parameter | Type    | Required | Description                                                                 |
+|-----------|---------|----------|-----------------------------------------------------------------------------|
+| `model`   | string  | Yes      | The name of the model to use. Must be already pulled via `ollama pull`.     |
+| `prompt`  | string  | Yes      | The prompt to send to the model.                                            |
+| `stream`  | boolean | No       | If `true`, the response streams token by token. Defaults to `true`.         |
+| `system`  | string  | No       | A system prompt that sets the model's behavior for this request.            |
+| `options` | object  | No       | Model parameters such as `temperature`, `top_p`, and `num_predict`.        |
+
+### Response
+
+```json
+{
+  "model": "llama3.2",
+  "response": "The capital of France is Paris.",
+  "done": true,
+  "total_duration": 1234567890,
+  "prompt_eval_count": 12,
+  "eval_count": 8
+}
+```
+
+### Response fields
+
+| Field                | Type    | Description                                              |
+|----------------------|---------|----------------------------------------------------------|
+| `model`              | string  | The model that generated the response.                   |
+| `response`           | string  | The generated text.                                      |
+| `done`               | boolean | `true` when generation is complete.                      |
+| `total_duration`     | integer | Total time taken in nanoseconds.                         |
+| `prompt_eval_count`  | integer | Number of tokens in the prompt.                          |
+| `eval_count`         | integer | Number of tokens in the response.                        |
+
+### Error codes
+
+| Status | Meaning                                                              |
+|--------|----------------------------------------------------------------------|
+| `400`  | Bad request. The request body is malformed or missing required fields.|
+| `404`  | Model not found. Pull the model first with `ollama pull`.            |
+| `500`  | Internal server error. Check that the Ollama server is running.      |
+
+---
+
+## POST /api/chat
+
+Sends a message to a model with full conversation history. Use this for multi-turn chat applications.
+
+### Request
+
+```bash
+curl http://localhost:11434/api/chat \
+  -d '{
+    "model": "llama3.2",
+    "messages": [
+      { "role": "user", "content": "What is photosynthesis?" }
+    ],
+    "stream": false
+  }'
+```
+
+### Request body
+
+| Parameter  | Type    | Required | Description                                                          |
+|------------|---------|----------|----------------------------------------------------------------------|
+| `model`    | string  | Yes      | The name of the model to use.                                        |
+| `messages` | array   | Yes      | An array of message objects representing the conversation history.   |
+| `stream`   | boolean | No       | If `true`, the response streams token by token. Defaults to `true`.  |
+| `options`  | object  | No       | Model parameters such as `temperature` and `top_p`.                 |
+
+### Message object
+
+| Field     | Type   | Required | Description                                              |
+|-----------|--------|----------|----------------------------------------------------------|
+| `role`    | string | Yes      | One of `system`, `user`, or `assistant`.                 |
+| `content` | string | Yes      | The content of the message.                              |
+
+### Response
+
+```json
+{
+  "model": "llama3.2",
+  "message": {
+    "role": "assistant",
+    "content": "Photosynthesis is the process by which plants use sunlight, water, and carbon dioxide to produce oxygen and energy in the form of glucose."
+  },
+  "done": true
+}
+```
+
+### Error codes
+
+| Status | Meaning                                                              |
+|--------|----------------------------------------------------------------------|
+| `400`  | Bad request. Check that `messages` is a valid array.                 |
+| `404`  | Model not found. Pull the model first with `ollama pull`.            |
+| `500`  | Internal server error. Check that the Ollama server is running.      |
+
+---
+
+## GET /api/tags
+
+Returns a list of all models currently downloaded on your machine.
+
+### Request
+
+```bash
+curl http://localhost:11434/api/tags
+```
+
+### Response
+
+```json
+{
+  "models": [
+    {
+      "name": "llama3.2:latest",
+      "size": 2019393189,
+      "digest": "a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72",
+      "modified_at": "2024-11-01T12:00:00Z"
+    }
+  ]
+}
+```
+
+### Response fields
+
+| Field         | Type    | Description                                          |
+|---------------|---------|------------------------------------------------------|
+| `models`      | array   | A list of model objects.                             |
+| `name`        | string  | The model name and tag.                              |
+| `size`        | integer | The size of the model in bytes.                      |
+| `digest`      | string  | The SHA256 digest of the model.                      |
+| `modified_at` | string  | The date and time the model was last modified.       |
+
+### Error codes
+
+| Status | Meaning                                                  |
+|--------|----------------------------------------------------------|
+| `500`  | Internal server error. Check that the Ollama server is running. |
+
+---
+
+## POST /api/pull
+
+Downloads a model from the Ollama model library to your machine.
+
+### Request
+
+```bash
+curl http://localhost:11434/api/pull \
+  -d '{
+    "name": "llama3.2",
+    "stream": false
+  }'
+```
+
+### Request body
+
+| Parameter | Type    | Required | Description                                                    |
+|-----------|---------|----------|----------------------------------------------------------------|
+| `name`    | string  | Yes      | The name of the model to pull from the Ollama library.         |
+| `stream`  | boolean | No       | If `true`, streams pull progress token by token. Defaults to `true`. |
+
+### Response
+
+```json
+{
+  "status": "success"
+}
+```
+
+### Error codes
+
+| Status | Meaning                                                              |
+|--------|----------------------------------------------------------------------|
+| `404`  | Model not found in the Ollama library.                               |
+| `500`  | Internal server error. Check your internet connection and that the Ollama server is running. |
