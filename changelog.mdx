@@ -1,0 +1,56 @@
+---
+title: Changelog
+description: New features, updates, and fixes shipped to Ollama.
+---
+
+<Update label="May 14, 2026" tags={["v0.24.0"]}>
+
+## New features
+
+**Codex App support in Ollama Launch.** Launch OpenAI's Codex desktop experience directly from Ollama to work on multiple Codex threads in parallel, with built-in worktree and git support.
+
+```bash
+ollama launch codex-app
+```
+
+Codex App includes:
+
+- **Built-in browser** — load local servers and sites and annotate the page to request changes.
+- **Review mode** — review code, leave comments, and iterate without leaving the app.
+- **Recommended models** — `kimi-k2.6` (vision) and `glm-5.1` for difficult agentic tasks; `nemotron-3-super`, `gemma4:31b`, and `qwen3.6` for local use.
+
+To restore the previous Codex App configuration:
+
+```bash
+ollama launch codex-app --restore
+```
+
+## Updates
+
+- Reworked the MLX sampler for improved generation quality on Apple Silicon.
+
+See [Getting started](/getting-started) to install or update Ollama.
+
+</Update>
+
+<Update label="May 13, 2026" tags={["v0.30.0", "pre-release"]}>
+
+## New features
+
+**New inference architecture (pre-release).** Ollama now supports `llama.cpp` directly instead of building on top of GGML, with compatibility for the GGUF file format. MLX is used to accelerate model inference on Apple Silicon.
+
+We're gathering feedback on performance, stability, and memory usage during the pre-release. Known limitations: `laguna-xs.2` and `llama3.2-vision` are not yet supported on this build.
+
+Install the pre-release on macOS or Linux:
+
+```bash
+curl -fsSL https://ollama.com/install.sh | OLLAMA_VERSION=0.30.0-rc22 sh
+```
+
+On Windows:
+
+```powershell
+$env:OLLAMA_VERSION="0.30.0-rc22"; irm https://ollama.com/install.ps1 | iex
+```
+
+</Update>
