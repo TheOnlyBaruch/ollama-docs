@@ -3,6 +3,31 @@ title: Changelog
 description: New features, updates, and fixes shipped to Ollama.
 ---
 
+<Update label="May 29, 2026" tags={["v0.30.0", "pre-release"]}>
+
+## Updates
+
+- **New `OLLAMA_IGPU_ENABLE` environment variable.** Integrated GPUs are now largely disabled by default to avoid performance regressions on systems with both an iGPU and a discrete GPU. Set `OLLAMA_IGPU_ENABLE=1` to opt back in.
+- The `v0.30.0` pre-release has been refreshed with stability and packaging fixes. To install or update, follow the steps in [Getting started](/getting-started) using the latest pre-release version:
+
+  ```bash
+  curl -fsSL https://ollama.com/install.sh | OLLAMA_VERSION=0.30.0-rc31 sh
+  ```
+
+  On Windows:
+
+  ```powershell
+  $env:OLLAMA_VERSION="0.30.0-rc31"; irm https://ollama.com/install.ps1 | iex
+  ```
+
+## Known issues
+
+- `nomic-embed-text` now lowercases inputs to match the model card. Earlier Ollama versions preserved mixed case; expect different embeddings if you previously relied on the old behavior.
+- `laguna-xs.2` is not yet supported on Windows or Linux.
+- `llama3.2-vision` is not yet supported on this build.
+
+</Update>
+
 <Update label="May 14, 2026" tags={["v0.24.0"]}>
 
 ## New features
